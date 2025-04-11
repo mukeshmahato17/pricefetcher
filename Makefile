@@ -2,4 +2,4 @@ run: build
 	@./bin/pricefetcher
 
 build:
-	@go build -o bin/pricefetcher . 
+	@go build -o bin/pricefetcher
