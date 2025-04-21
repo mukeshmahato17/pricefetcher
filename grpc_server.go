@@ -2,12 +2,30 @@ package main
 
 import (
 	"context"
+	"net"
 
 	"github.com/mukeshmahato17/pricefetcher/proto"
+	"google.golang.org/grpc"
 )
+
+func makeGRPCServerAndRun(linstenAddr string, svc PriceFetcher) error {
+	grpcPriceFetcher := NewGRPCPriceFetcherServer(svc)
+
+	ln, err := net.Listen("tcp", linstenAddr)
+	if err != nil {
+		return err
+	}
+
+	opts := []grpc.ServerOption{}
+	server := grpc.NewServer(opts...)
+	proto.RegisterPriceFetcherServer(server, grpcPriceFetcher)
+
+	return server.Serve(ln)
+}
 
 type GRPCPriceFetcherServer struct {
 	svc PriceFetcher
+	proto.UnimplementedPriceFetcherServer
 }
 
 func NewGRPCPriceFetcherServer(svc PriceFetcher) *GRPCPriceFetcherServer {
@@ -27,5 +45,5 @@ func (s GRPCPriceFetcherServer) FetchPrice(ctx context.Context, req *proto.Price
 		Price:  float32(price),
 	}
 
-	return resp, nil
+	return resp, err
 }
